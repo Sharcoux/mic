@@ -25,5 +25,8 @@
   "bugs": {
     "url": "https://github.com/ashishbajaj99/mic/issues"
   },
-  "homepage": "https://github.com/ashishbajaj99/mic#readme"
+  "homepage": "https://github.com/ashishbajaj99/mic#readme",
+  "devDependencies": {
+    "eslint": "^5.9.0"
+  }
 }
