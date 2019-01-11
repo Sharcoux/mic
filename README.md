@@ -30,16 +30,22 @@ $ npm install mic
 
 API
 ============
-Below is an example of how to use the module. 
+Below is an example of how to use the module and the current options default values.
 ```javascript
 var mic = require('mic');
 var fs = require('fs');
 
 var micInstance = mic({
-    rate: '16000',
-    channels: '1',
-    debug: true,
-    exitOnSilence: 6
+    endian: 'little'                //endian (big or little)
+    rate: 16000,                    //bit rate (8000, 16000 or 44100 for the most commons)
+    channels: 1,                    //channel count (generally 1 or 2, respectively for mono and stereo)
+    bitwidth: 16,                   //bit width (8, 16 or 24 generally)
+    encoding: 'signed-integer',     //encoding (`signed-integer` OR `unsinged-integer`)
+    device: 'plughw:1,0',           //`hw:0,0` OR `plughw:1, 0`
+    exitOnSilence: 3,               //number of silent frames before detecting a silence
+    fileType: 'raw',                //the file type: 'raw' for string, 'wav', etc
+    debug: false,                   //should display detailed debug messages?
+    threshold: 2000,                //sound threshold to reach before detecting a sound in a frame
 });
 var micInputStream = micInstance.getAudioStream();
 
@@ -55,37 +61,12 @@ micInputStream.on('error', function(err) {
     console.log("Error in Input Stream: " + err);
 });
 
-micInputStream.on('startComplete', function() {
-    console.log("Got SIGNAL startComplete");
-    setTimeout(function() {
-            micInstance.pause();
-    }, 5000);
-});
-    
-micInputStream.on('stopComplete', function() {
-    console.log("Got SIGNAL stopComplete");
-});
-    
-micInputStream.on('pauseComplete', function() {
-    console.log("Got SIGNAL pauseComplete");
-    setTimeout(function() {
-        micInstance.resume();
-    }, 5000);
-});
-
-micInputStream.on('resumeComplete', function() {
-    console.log("Got SIGNAL resumeComplete");
-    setTimeout(function() {
-        micInstance.stop();
-    }, 5000);
-});
-
 micInputStream.on('silence', function() {
     console.log("Got SIGNAL silence");
 });
 
-micInputStream.on('processExitComplete', function() {
-    console.log("Got SIGNAL processExitComplete");
+micInputStream.on('sound', function() {
+    console.log("Got SIGNAL sound");
 });
 
 micInstance.start();
@@ -110,7 +91,8 @@ Returns a microphone object instance that can be used to control the streaming s
     * `rate`: `8000` OR `16000` OR `44100` OR anything valid supported by arecord OR sox, default: `16000`
     * `channels`: `1` OR `2` OR anything valid supported by arecord OR sox, default: `1` (mono)
     * `device`: `hw:0,0` OR `plughw:1, 0` OR anything valid supported by arecord. Ignored for sox on macOS.
-    * `exitOnSilence`: The `'silence'` signal is raised after reaching these many consecutive frames, default: '0'
+    * `exitOnSilence`: The `'silence'` signal is raised after reaching these many consecutive frames, default: '3'
+    * `threshold`: The signal amplitude to reach before considering that we received a sound, default: '2000'
     * `debug`: true OR false - can be used to aide in debugging
     * `fileType`: string defaults to 'raw', allows you to set a valid file type such as 'wav' (for sox only) to avoid the no header issue mentioned above, see a list of types [here](http://sox.sourceforge.net/soxformat.html)
 
@@ -129,12 +111,7 @@ This resumes the arecord OR sox process using the `SIGCONT` signal.
 ### mic.getAudioStream()
 This returns a simple Transform stream that contains the data from the arecord OR sox process. This sream can be directly piped to a speaker sream OR a file stream. Further this provides a number of events triggered by the state of the stream:
 * `'silence'`: This is emitted once when `exitOnSilence` number of consecutive frames of silence are found
-* `'sound'`: This is emitted if we hear something after a `silence`
-* `'processExitComplete'`: This is emitted once the arecord OR sox process exits
-* `'startComplete'`: This is emitted once the start() function is successfully executed
-* `'stopComplete'`: This is emitted once the stop() function is successfully executed
-* `'pauseComplete'`: This is emitted once the pause() function is successfully executed
-* `'resumeComplete'`: This is emitted once the resume() function is successfully executed
+* `'sound'`: This is emitted the first time we hear something that exceeds the threshold after a silent period
 * It further inherits all the Events from [stream.Transform](http://nodejs.org/api/stream.html#stream_class_stream_transform)
 
 
