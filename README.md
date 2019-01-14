@@ -1,3 +1,8 @@
+Fork
+====
+
+In this fork, I rewrote the lib for conciseness, promisification and more modern and readable javascript. I also added the 'sound' and 'silence' events, and added the possibility to configurate the threshold that will trigger sound detection.
+
 # mic
 A simple stream wrapper for [arecord](http://alsa-project.org/) (Linux (including Raspbian)) and [sox](http://sox.sourceforge.net/) (Mac/Windows). Returns a Mic object that supports a flexible API to control: start, stop, pause, resume functionality. Also it provides access to the audioStream object that provides evented notifications for 'startComplete', 'stopComplete', 'pauseComplete', 'resumeComplete', 'silence' and 'processExitComplete'. You can use this signals to control various states.
 
